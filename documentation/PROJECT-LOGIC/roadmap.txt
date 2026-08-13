@@ -1,0 +1,174 @@
+Project Roadmap
+
+Phase 1 — Project Definition
+Define the problem and objectives.
+Define the MVP and optional features.
+Finalize the system architecture/pipeline.
+Choose the technologies.
+Define success criteria and evaluation metrics.
+
+
+
+Phase 2 — Environment & Database
+Create the project repository and development structure
+Set up the Python environment
+Set up PostgreSQL
+Create the database schema
+Set up the FastAPI backend
+Connect FastAPI ↔ PostgreSQL
+Test the foundation
+Freeze the initial project configuration
+
+
+
+Phase 3 — Worker Enrollment
+Build worker registration.
+Capture worker face images.
+Generate face embeddings.
+Store worker information + embeddings in PostgreSQL.
+
+
+
+Phase 4 — Attendance
+Implement face detection.
+Implement face recognition.
+Match the face with the worker database.
+Implement clock-in logic.
+Store attendance records.
+Test attendance accuracy.
+
+
+
+Phase 5 — PPE Dataset
+Collect PPE images/videos.
+Select representative frames.
+Annotate:
+Person
+Helmet
+Vest
+Split dataset into train/validation/test.
+Apply data augmentation.
+
+
+
+Phase 6 — PPE Model
+Select lightweight YOLO model.
+Train/fine-tune the model.
+Evaluate it.
+Calculate Precision / Recall / mAP.
+Analyze errors.
+Improve dataset/training.
+Retrain and select the final model.
+
+
+
+Phase 7 — Construction Monitoring
+Connect construction video/camera.
+Run YOLO detection.
+Add ByteTrack.
+Generate persistent track IDs.
+Identify workers using face recognition.
+Optionally integrate Tag/QR recognition.
+Link Track ID → Worker ID.
+
+
+
+Phase 8 — PPE Compliance
+Associate helmets/vests with workers.
+Determine PPE status:
+Full PPE
+Helmet missing
+Vest missing
+No PPE
+Store PPE events in PostgreSQL.
+Test the complete monitoring pipeline.
+
+
+
+Phase 9 — Analytics
+Combine attendance + PPE data.
+Calculate daily statistics.
+Calculate attendance and PPE compliance rates.
+Generate worker-level summaries.
+
+
+
+Phase 10 — NLP / AI Report
+Prepare structured statistics/JSON.
+Send the data to the LLM.
+Generate the daily safety report.
+Store the report.
+Export/display the report.
+
+
+
+Phase 11 — Dashboard
+Build the admin dashboard.
+Worker management.
+Attendance dashboard.
+Live PPE monitoring.
+Statistics.
+Reports/PDF.
+
+
+
+Phase 12 — Testing & Evaluation
+Test each module independently.
+Test the complete pipeline.
+Measure:
+PPE model performance
+Face recognition performance
+Attendance accuracy
+Processing speed/FPS
+Identify limitations and failure cases.
+
+
+
+Phase 13 — Finalization
+Fix important bugs.
+Clean and organize the code.
+Finalize database.
+Prepare screenshots/videos/demo.
+Write the internship report.
+Prepare presentation.
+Demonstrate the complete system.
+
+
+
+
+The whole project in one line
+IDEA
+ ↓
+REQUIREMENTS
+ ↓
+ARCHITECTURE
+ ↓
+DATABASE
+ ↓
+WORKER ENROLLMENT
+ ↓
+ATTENDANCE
+ ↓
+PPE DATASET
+ ↓
+PPE MODEL TRAINING
+ ↓
+MODEL EVALUATION & IMPROVEMENT
+ ↓
+CONSTRUCTION MONITORING
+ ↓
+TRACKING + WORKER IDENTIFICATION
+ ↓
+PPE COMPLIANCE
+ ↓
+ANALYTICS
+ ↓
+LLM REPORT
+ ↓
+DASHBOARD
+ ↓
+TESTING & EVALUATION
+ ↓
+DOCUMENTATION
+ ↓
+FINAL DEMO

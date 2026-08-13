@@ -1,0 +1,20 @@
+Step 1
+Project structure
+        ↓
+Step 2
+Python environment
+        ↓
+Step 3
+Docker + PostgreSQL + pgvector
+        ↓
+Step 4
+Database schema
+        ↓
+Step 5
+FastAPI
+        ↓
+Step 6
+FastAPI ↔ PostgreSQL
+        ↓
+Step 7
+Test everything

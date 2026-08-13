@@ -1,0 +1,25 @@
+# BACKEND & API
+
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
+httpx
+python-multipart
+
+# DATABASE
+
+sqlalchemy
+psycopg[binary]
+pgvector
+alembic
+
+# COMPUTER VISION & AI
+
+torch
+torchvision
+ultralytics
+insightface
+onnxruntime
+opencv-python
+numpy<2.0.0
