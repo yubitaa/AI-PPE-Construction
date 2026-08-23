@@ -10,12 +10,11 @@ from app.models.face_embedding import FaceEmbedding
 from app.models.worker import Worker
 from app.services.face_recognition import FaceRecognitionService
 
-
 EXPECTED_EMBEDDING_DIMENSION = 512
 # Temporary development threshold: requires at least 60% resemblance to match
 DEV_MIN_ACCURACY_THRESHOLD = 75.0
 
-face_recognition_service = FaceRecognitionService()
+# [REMOVED] face_recognition_service = FaceRecognitionService()
 
 
 async def register_worker_service(
@@ -26,6 +25,7 @@ async def register_worker_service(
     department: str,
     tag_id: Optional[str],
     face_images: list[UploadFile],
+    face_service: FaceRecognitionService,  # [ADDED] Accept injected face_service
 ) -> Worker:
     # 1. Validate image count boundary (3-5 images)
     if not (3 <= len(face_images) <= 5):
@@ -64,7 +64,9 @@ async def register_worker_service(
                 detail=f"Invalid image data on image {index + 1}.",
             )
 
-        result = face_recognition_service.generate_embedding(decoded_image)
+        result = face_service.generate_embedding(
+            decoded_image
+        )  # [MODIFIED] Use injected instance
 
         result_status = result.get("status")
 
@@ -137,14 +139,12 @@ async def register_worker_service(
         )
 
 
-async def identify_worker_service(
-    db: Session,
-    face_image: UploadFile,
-) -> dict:
-    # Read uploaded image.
-    image_bytes = await face_image.read()
+def change_image_to_ndarray(face_image: UploadFile) -> np.ndarray:
+    """Convert an uploaded image file to a NumPy ndarray (OpenCV BGR format).
 
-    # Decode bytes into OpenCV BGR image.
+    Raises HTTPException if the image is invalid.
+    """
+    image_bytes = face_image.file.read()
     image_array = np.frombuffer(image_bytes, dtype=np.uint8)
     decoded_image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
 
@@ -154,8 +154,18 @@ async def identify_worker_service(
             detail="Invalid image data.",
         )
 
-    # Generate the real face embedding.
-    result = face_recognition_service.generate_embedding(decoded_image)
+    return decoded_image
+
+
+async def identify_worker_service(
+    db: Session,
+    decoded_image: np.ndarray,
+    face_service: FaceRecognitionService,  # [ADDED] Accept injected face_service
+) -> dict:
+
+    result = face_service.generate_embedding(
+        decoded_image
+    )  # [MODIFIED] Use injected instance
 
     result_status = result.get("status")
 
@@ -184,13 +194,13 @@ async def identify_worker_service(
             ),
         )
 
-# PostgreSQL + pgvector nearest-neighbor search using Cosine distance.
+    # PostgreSQL + pgvector nearest-neighbor search using Cosine distance.
     closest_match = (
         db.query(
             FaceEmbedding,
-            FaceEmbedding.embedding_vector
-            .cosine_distance(target_embedding) # Changed to cosine
-            .label("distance"),
+            FaceEmbedding.embedding_vector.cosine_distance(
+                target_embedding
+            ).label("distance"),
         )
         .order_by(asc("distance"))
         .first()
@@ -206,14 +216,13 @@ async def identify_worker_service(
     face_record, distance = closest_match
 
     # Convert Cosine Distance (0.0 to 2.0) into a 0-100% resemblance score
-    # distance 0.0 becomes 100% match. distance 2.0 becomes 0% match.
     similarity_ratio = 1.0 - (distance / 2.0)
     accuracy_percentage = round(similarity_ratio * 100, 2)
 
     if accuracy_percentage >= DEV_MIN_ACCURACY_THRESHOLD:
         return {
             "worker_id": face_record.worker_id,
-            "score": accuracy_percentage, # Safely keeping the 'score' key for the API contract
+            "score": accuracy_percentage,
             "matched": True,
         }
 
