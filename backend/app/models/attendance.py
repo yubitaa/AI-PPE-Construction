@@ -23,7 +23,6 @@ class AttendanceRecord(Base):
         nullable=False,
     )
 
-    # Fixed: Variable renamed to record_date, DB column remains "date"
     record_date: Mapped[date] = mapped_column(
         "date",
         Date,
@@ -43,7 +42,7 @@ class AttendanceRecord(Base):
     __table_args__ = (
         UniqueConstraint(
             "worker_id",
-            "date", # This refers to the exact DB column name, so it stays "date"
+            "date",  # Matches the database column name "date" above
             name="uq_attendance_worker_date",
         ),
     )
@@ -51,4 +50,4 @@ class AttendanceRecord(Base):
     worker = relationship(
         "Worker",
         back_populates="attendance_records",
-    )
+    ) 

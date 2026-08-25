@@ -1,3 +1,4 @@
+#Pydantic schemas define the strict data contract between your FastAPI backend and API clients (such as frontends or mobile apps).
 import uuid
 from typing import Optional
 from pydantic import BaseModel, ConfigDict

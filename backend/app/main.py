@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
-from fastapi import Depends, FastAPI  # [MODIFIED] Removed unused Request import
+from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.api import workers
+from app.api import attendance, workers
 from app.db.dependencies import get_db
 from app.services.face_recognition import FaceRecognitionService
 
@@ -21,9 +21,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# [REMOVED] get_face_service definition moved to app/dependencies.py
-
 app.include_router(workers.router)
+app.include_router(attendance.router)
 
 
 @app.get("/")
