@@ -91,3 +91,11 @@ Thumbs.db
 *.log
 *.tmp
 *.temp
+.vscode/
+
+dataset/qc_removed/
+dataset/qc_review/
+dataset/*.jpg
+dataset/*.png
+dataset/*.jpeg
+

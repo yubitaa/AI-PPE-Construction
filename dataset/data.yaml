@@ -1,0 +1,10 @@
+train: train/images
+val: val/images
+test: test/images
+
+nc: 3
+
+names:
+  0: Person
+  1: Helmet
+  2: Vest
