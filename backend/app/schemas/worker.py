@@ -1,7 +1,13 @@
+#Pydantic schemas define the strict data contract between your FastAPI backend and API clients (such as frontends or mobile apps).
 import uuid
 from typing import Optional
 from pydantic import BaseModel, ConfigDict
-
+# It defines the structure of the response:
+# Validate the returned data
+# Convert it to JSON
+# Document the response in Swagger/OpenAPI
+# Reject or exclude data that does not match the schema
+# The schema describes the output, not the registration input.
 class WorkerRegistrationResponse(BaseModel):
     """
     API response contract for successful worker registration.
