@@ -4,12 +4,12 @@
             "ssh": "Disabled",
             "previewLimit": 50,
             "server": "localhost",
-            "port": 5433,
+            "port": 5432,
             "driver": "PostgreSQL",
             "name": "PPE Database",
             "database": "ppe_monitoring",
-            "password": "change_me",
-            "username": "admin"
+            "username": "admin",
+            "password": "change_me"
         }
     ]
 }
