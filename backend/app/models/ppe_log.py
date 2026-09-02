@@ -37,9 +37,14 @@ class PPEComplianceLog(Base):
     )
 
     # Position in the pre-recorded video, measured in seconds.
-    timestamp: Mapped[float] = mapped_column(
+    start_timestamp: Mapped[float] = mapped_column(
+    Float,
+    nullable=False,
+    )
+
+    end_timestamp: Mapped[float | None] = mapped_column(
         Float,
-        nullable=False,
+        nullable=True,
     )
 
     helmet_detected: Mapped[bool] = mapped_column(
