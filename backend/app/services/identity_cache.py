@@ -1,81 +1,81 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from uuid import UUID
 
 
 @dataclass
 class CachedIdentity:
-    """
-    Identity information associated with an active ByteTrack track.
-    """
-
     track_id: int
     worker_id: UUID
 
 
 class IdentityCache:
     """
-    Maps ByteTrack track IDs to worker UUIDs.
+    Associates a ByteTrack track ID with a known worker.
 
-    Identity is cached separately from PPE compliance state.
+    Unknown identities are never stored.
 
-    UNKNOWN identities are never stored.
+    Track IDs are intentionally treated as temporary tracking identities,
+    not permanent worker identities. The monitor removes them when a
+    track has been absent long enough.
     """
 
     def __init__(self) -> None:
         self._cache: dict[int, CachedIdentity] = {}
 
     def get(self, track_id: int) -> UUID | None:
-        """
-        Return the worker UUID associated with a track.
+        cached = self._cache.get(track_id)
 
-        Returns None when the track has not been identified.
-        """
-
-        identity = self._cache.get(track_id)
-
-        if identity is None:
+        if cached is None:
             return None
 
-        return identity.worker_id
+        return cached.worker_id
 
     def set(
         self,
         track_id: int,
         worker_id: UUID,
     ) -> None:
-        """
-        Store a valid track_id -> worker_id relationship.
-        """
-
         self._cache[track_id] = CachedIdentity(
             track_id=track_id,
             worker_id=worker_id,
         )
 
     def contains(self, track_id: int) -> bool:
-        """
-        Check whether this track already has an identity.
-        """
-
         return track_id in self._cache
 
-    def remove(self, track_id: int) -> None:
-        """
-        Remove a track from the identity cache.
-        """
+    def remove(self, track_id: int) -> UUID | None:
+        cached = self._cache.pop(track_id, None)
 
-        self._cache.pop(track_id, None)
+        if cached is None:
+            return None
+
+        return cached.worker_id
 
     def clear(self) -> None:
-        """
-        Clear all cached identities.
-        """
-
         self._cache.clear()
 
     def active_tracks(self) -> list[int]:
+        return list(self._cache.keys())
+
+    def get_cached_identity(
+        self,
+        track_id: int,
+    ) -> CachedIdentity | None:
         """
-        Return all currently cached track IDs.
+        Return the complete cached record when the caller needs both
+        the track ID and worker ID.
+        """
+        return self._cache.get(track_id)
+
+    def worker_tracks(self, worker_id: UUID) -> list[int]:
+        """
+        Return all currently cached track IDs associated with a worker.
         """
 
-        return list(self._cache.keys())
+        return [
+            track_id
+            for track_id, cached in self._cache.items()
+            if cached.worker_id == worker_id
+        ]

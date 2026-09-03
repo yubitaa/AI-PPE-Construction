@@ -11,7 +11,7 @@ from app.models.worker import Worker
 from app.services.face_recognition import FaceRecognitionService
 
 EXPECTED_EMBEDDING_DIMENSION = 512
-# Temporary development threshold: requires at least 60% resemblance to match
+# Temporary development threshold: requires at least 75% resemblance to match
 DEV_MIN_ACCURACY_THRESHOLD = 75.0
 
 # [REMOVED] face_recognition_service = FaceRecognitionService()

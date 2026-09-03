@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -6,10 +8,6 @@ from app.models.ppe_log import PPEStatus
 
 @dataclass
 class ComplianceInterval:
-    """
-    One continuous PPE compliance period for a worker.
-    """
-
     worker_id: UUID
     status: PPEStatus
     start_timestamp: float
@@ -18,10 +16,6 @@ class ComplianceInterval:
 
 @dataclass
 class WorkerComplianceState:
-    """
-    Current open compliance interval for a worker.
-    """
-
     worker_id: UUID
     current_status: PPEStatus
     interval_start: float
@@ -29,15 +23,9 @@ class WorkerComplianceState:
 
 class ComplianceStateManager:
     """
-    Maintains the current PPE compliance state for each worker.
+    Maintains one active PPE compliance interval per worker.
 
-    The manager does not write directly to PostgreSQL.
-
-    It determines when:
-        - an interval starts
-        - an interval continues
-        - an interval closes
-        - a new interval starts after a state change
+    Timestamps are always video-relative seconds.
     """
 
     def __init__(self) -> None:
@@ -50,58 +38,57 @@ class ComplianceStateManager:
         timestamp: float,
     ) -> ComplianceInterval | None:
         """
-        Update a worker's current compliance state.
+        Update a worker's stable compliance state.
 
-        Returns a completed interval only when the compliance
-        state changes.
+        If the status has not changed, nothing is closed.
+
+        If the status changes, the previous interval is completed
+        at the supplied video timestamp and the new interval begins
+        at that same timestamp.
         """
 
         current = self._states.get(worker_id)
 
-        # First observation.
         if current is None:
             self._states[worker_id] = WorkerComplianceState(
                 worker_id=worker_id,
                 current_status=status,
-                interval_start=timestamp,
+                interval_start=float(timestamp),
             )
-
             return None
 
-        # Same state:
-        # keep the existing interval open.
         if current.current_status == status:
             return None
 
-        # State changed:
-        # close the previous interval.
-        completed_interval = ComplianceInterval(
+        completed = ComplianceInterval(
             worker_id=worker_id,
             status=current.current_status,
             start_timestamp=current.interval_start,
-            end_timestamp=timestamp,
+            end_timestamp=float(timestamp),
         )
 
-        # Start the new interval.
         self._states[worker_id] = WorkerComplianceState(
             worker_id=worker_id,
             current_status=status,
-            interval_start=timestamp,
+            interval_start=float(timestamp),
         )
 
-        return completed_interval
+        return completed
 
     def close_worker(
         self,
         worker_id: UUID,
-        timestamp: float,
+        timestamp: float | None,
     ) -> ComplianceInterval | None:
         """
-        Close the worker's currently open interval.
+        Close the worker's active interval.
 
-        Used when:
-            - the worker disappears permanently
-            - the video ends
+        When timestamp is provided, it is the video-relative moment
+        at which the worker's tracked presence ended.
+
+        If timestamp is None, the interval is closed using its existing
+        start timestamp. This is only a defensive fallback; normal
+        video processing should provide the actual final timestamp.
         """
 
         current = self._states.pop(worker_id, None)
@@ -109,26 +96,31 @@ class ComplianceStateManager:
         if current is None:
             return None
 
+        end_timestamp = (
+            float(timestamp)
+            if timestamp is not None
+            else current.interval_start
+        )
+
+        # Never produce a negative-duration interval.
+        if end_timestamp < current.interval_start:
+            end_timestamp = current.interval_start
+
         return ComplianceInterval(
             worker_id=worker_id,
             status=current.current_status,
             start_timestamp=current.interval_start,
-            end_timestamp=timestamp,
+            end_timestamp=end_timestamp,
         )
 
     def get_state(
         self,
         worker_id: UUID,
     ) -> WorkerComplianceState | None:
-        """
-        Return the worker's current compliance state.
-        """
-
         return self._states.get(worker_id)
 
     def active_workers(self) -> list[UUID]:
-        """
-        Return workers that currently have an open interval.
-        """
-
         return list(self._states.keys())
+
+    def clear(self) -> None:
+        self._states.clear()
