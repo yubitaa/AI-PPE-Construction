@@ -1,16 +1,13 @@
 import json
 from datetime import date
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
 
-# Connect directly to your Docker database
-DATABASE_URL = "postgresql://admin:change_me@localhost:5432/ppe_monitoring"
-engine = create_engine(DATABASE_URL)
-
+# Import the existing DB configuration instead of hardcoding
+from app.db.database import SessionLocal
 from app.services.analytics import generate_daily_analytics
 
 def main():
-    with Session(engine) as db:
+    # Use the configured SessionLocal
+    with SessionLocal() as db:
         today = date.today()
         print(f"Running Phase 8 Analytics for Date: {today}\n")
         

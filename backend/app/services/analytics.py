@@ -1,8 +1,11 @@
 from datetime import date
+from sqlalchemy import cast, Date
 from sqlalchemy.orm import Session
+
 from app.models.ppe_log import PPEComplianceLog, PPEStatus
 from app.models.attendance import AttendanceRecord
 from app.models.daily_report import DailyReport
+from app.models.video_source import VideoSource
 
 def generate_daily_analytics(db: Session, target_date: date) -> DailyReport:
     """
@@ -24,12 +27,20 @@ def generate_daily_analytics(db: Session, target_date: date) -> DailyReport:
         ]
     }
 
-    # 3. Fetch all PPE Logs for the workers present today
-    # (Since timestamp is video-relative, we filter by the workers who were clocked in today)
+    # 3. Fetch all PPE Logs for the workers present today (FIXED: Scoped to target_date)
+    # By joining VideoSource, we guarantee we only aggregate logs from videos processed on the target date.
     present_worker_ids = [a.worker_id for a in attendances]
     
     if present_worker_ids:
-        ppe_logs = db.query(PPEComplianceLog).filter(PPEComplianceLog.worker_id.in_(present_worker_ids)).all()
+        ppe_logs = (
+            db.query(PPEComplianceLog)
+            .join(VideoSource, PPEComplianceLog.video_id == VideoSource.video_id)
+            .filter(
+                PPEComplianceLog.worker_id.in_(present_worker_ids),
+                cast(VideoSource.uploaded_at, Date) == target_date
+            )
+            .all()
+        )
     else:
         ppe_logs = []
 

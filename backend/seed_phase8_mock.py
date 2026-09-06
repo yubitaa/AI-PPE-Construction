@@ -1,7 +1,8 @@
 import uuid
 from datetime import date, datetime, timezone
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+
+# Import the existing DB configuration instead of hardcoding
+from app.db.database import SessionLocal
 
 # Import your database models
 from app.models.ppe_log import PPEComplianceLog, PPEStatus
@@ -9,18 +10,23 @@ from app.models.attendance import AttendanceRecord
 from app.models.worker import Worker
 from app.models.video_source import VideoSource
 
-# Connect directly to your Docker database
-DATABASE_URL = "postgresql://admin:change_me@localhost:5432/ppe_monitoring"
-engine = create_engine(DATABASE_URL)
-
 def seed_mock_data():
-    with Session(engine) as db:
-        print("Clearing old mock data...")
-        db.query(PPEComplianceLog).delete()
-        db.query(AttendanceRecord).delete()
+    # Use the configured SessionLocal
+    with SessionLocal() as db:
+        print("Cleaning up previous mock data safely...")
         
-        # 1. Ensure we have mock Workers and a Video (FIXED: Unique MOCK employee IDs)
-        worker_a = db.query(Worker).filter_by(name="Worker A").first()
+        # 1. Safely delete ONLY the mock records (protects real database data)
+        mock_employee_ids = ["MOCK-EMP-A1", "MOCK-EMP-B2", "MOCK-EMP-C3"]
+        mock_workers = db.query(Worker).filter(Worker.employee_id.in_(mock_employee_ids)).all()
+        mock_worker_ids = [w.worker_id for w in mock_workers]
+        
+        if mock_worker_ids:
+            db.query(PPEComplianceLog).filter(PPEComplianceLog.worker_id.in_(mock_worker_ids)).delete(synchronize_session=False)
+            db.query(AttendanceRecord).filter(AttendanceRecord.worker_id.in_(mock_worker_ids)).delete(synchronize_session=False)
+            db.commit()
+
+        # 2. Ensure we have mock Workers and a Video
+        worker_a = db.query(Worker).filter_by(employee_id="MOCK-EMP-A1").first()
         if not worker_a:
             worker_a = Worker(worker_id=uuid.uuid4(), name="Worker A", employee_id="MOCK-EMP-A1", role="Builder", department="Construction")
             worker_b = Worker(worker_id=uuid.uuid4(), name="Worker B", employee_id="MOCK-EMP-B2", role="Welder", department="Metalwork")
@@ -36,14 +42,17 @@ def seed_mock_data():
             db.add(video)
             db.commit()
         else:
-            worker_b = db.query(Worker).filter_by(name="Worker B").first()
-            worker_c = db.query(Worker).filter_by(name="Worker C").first()
-            video = db.query(VideoSource).first()
+            worker_b = db.query(Worker).filter_by(employee_id="MOCK-EMP-B2").first()
+            worker_c = db.query(Worker).filter_by(employee_id="MOCK-EMP-C3").first()
+            # FIXED: Explicitly select the mock video instead of just .first()
+            video = db.query(VideoSource).filter_by(file_name="test_cam_1.mp4").first()
 
         today = date.today()
         now = datetime.now(timezone.utc)
-
-        # 2. Create Attendance Records for Today
+        # ADD THESE TWO LINES: Force the mock video to belong to "today"
+        video.uploaded_at = now
+        db.commit()
+        # 3. Create Attendance Records for Today
         print("Seeding Attendance Records...")
         db.add_all([
             AttendanceRecord(worker_id=worker_a.worker_id, record_date=today, clock_in=now, status="PRESENT"),
@@ -51,7 +60,7 @@ def seed_mock_data():
             AttendanceRecord(worker_id=worker_c.worker_id, record_date=today, clock_in=now, status="PRESENT"),
         ])
 
-        # 3. Create PPE Logs matching Phase 8 Spec (Section 19)
+        # 4. Create PPE Logs matching Phase 8 Spec (Section 19)
         print("Seeding PPE Compliance Logs...")
         
         logs = []
