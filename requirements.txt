@@ -1,5 +1,4 @@
 # BACKEND & API
-
 fastapi
 uvicorn[standard]
 pydantic
@@ -8,14 +7,12 @@ httpx
 python-multipart
 
 # DATABASE
-
 sqlalchemy
 psycopg[binary]
 pgvector
 alembic
 
 # COMPUTER VISION & AI
-
 torch
 torchvision
 ultralytics
@@ -23,3 +20,6 @@ insightface
 onnxruntime
 opencv-python
 numpy<2.0.0
+
+# SLM & REPORT GENERATION
+google-genai
