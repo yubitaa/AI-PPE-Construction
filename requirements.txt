@@ -20,6 +20,7 @@ insightface
 onnxruntime
 opencv-python
 numpy<2.0.0
+supervision==0.30.2
 
 # SLM & REPORT GENERATION
 google-genai
