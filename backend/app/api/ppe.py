@@ -252,7 +252,7 @@ def _get_video_info(video_path: str) -> tuple[float | None, int]:
             return None, 15
 
         duration = float(frame_count / fps)
-        # 0.5s interval = fps / 2
+        # 0.5s interval = fps / 2.0
         skip = int(round(fps / 2.0))
         return duration, max(1, skip)
 
@@ -324,10 +324,9 @@ async def process_ppe_video(
             detail=f"Failed to save uploaded video: {exc}",
         )
 
-    # 3. Read video details & compute 0.5s frame skip
+    # 3. Read video details and choose the default skip based on the
+    # actual FPS, while still honoring an explicit override from the caller.
     duration, auto_frame_skip = _get_video_info(str(video_path))
-
-    # Use provided frame_skip or default to 0.5s interval
     effective_frame_skip = (
         frame_skip if frame_skip is not None else auto_frame_skip
     )

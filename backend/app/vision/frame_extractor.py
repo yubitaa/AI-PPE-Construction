@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 def extract_frames(
     source: Union[str, int], 
-    frame_skip: int = 5
+    frame_skip: int 
 ) -> Generator[np.ndarray, None, None]:
     """
     Ingests frames from a video file path or live webcam index using OpenCV.
@@ -54,7 +54,7 @@ class FramePacket:
 
 def extract_frames_with_timestamps(
     source: Union[str, int],
-    frame_skip: int = 30,
+    frame_skip: int,
 ) -> Generator[FramePacket, None, None]:
     """
     Extract frames while preserving the source frame number

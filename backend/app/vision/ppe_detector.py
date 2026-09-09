@@ -29,13 +29,6 @@ class PPEDetector(Protocol):
         ...
 
 
-class MockPPEDetector:
-    """
-    Temporary detector used for testing.
-    """
-
-    def detect(self, frame: np.ndarray) -> list[Detection]:
-        return []
 
 
 class YOLOPPEDetector:

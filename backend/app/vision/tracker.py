@@ -1,3 +1,4 @@
+import warnings
 from dataclasses import dataclass
 
 import numpy as np
@@ -25,7 +26,15 @@ class PersonTracker:
     """
 
     def __init__(self) -> None:
-        self.tracker = sv.ByteTrack()
+        # supervision >= 0.28 emits a deprecation warning for ByteTrack;
+        # it still works for now and will be replaced in a future release.
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=r"The `ByteTrack` was deprecated since v0\.28\.0.*",
+                category=FutureWarning,
+            )
+            self.tracker = sv.ByteTrack()
 
     def update(
         self,
