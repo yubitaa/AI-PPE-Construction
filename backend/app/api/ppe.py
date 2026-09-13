@@ -210,23 +210,25 @@
 #         )
 import os
 import uuid
+from datetime import date
 from pathlib import Path
+from typing import Optional, List  # Added List for response model
 
 import cv2
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status, Query
+from sqlalchemy import cast, Date  # Added for date filtering
 from sqlalchemy.orm import Session
 
 from app.db.dependencies import get_db
 from app.dependencies import get_face_service
 from app.models.video_source import VideoSource
+from app.models.ppe_log import PPEComplianceLog
+from app.schemas.responses import PPEComplianceLogResponse, PPEProcessingResponse
 from app.services.face_recognition import FaceRecognitionService
 from app.services.ppe_monitor import MonitorConfig, PPEMonitor
 from app.services.worker import identify_worker_service
 
-router = APIRouter(
-    prefix="/ppe",
-    tags=["PPE Compliance"],
-)
+router = APIRouter(tags=["PPE Compliance"])
 
 
 UPLOAD_DIRECTORY = Path("uploads") / "ppe"
@@ -260,8 +262,13 @@ def _get_video_info(video_path: str) -> tuple[float | None, int]:
         capture.release()
 
 
+# ---------------------------------------------------------
+# OPERATIONAL APIs (User Side)
+# ---------------------------------------------------------
+
 @router.post(
-    "/process-video",
+    "/upload",
+    response_model=PPEProcessingResponse,
     status_code=status.HTTP_200_OK,
 )
 async def process_ppe_video(
@@ -270,6 +277,7 @@ async def process_ppe_video(
     db: Session = Depends(get_db),
     face_service: FaceRecognitionService = Depends(get_face_service),
 ):
+    """POST /api/v1/ppe/upload - Processes a video file for PPE Compliance."""
     if not video_file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -324,8 +332,7 @@ async def process_ppe_video(
             detail=f"Failed to save uploaded video: {exc}",
         )
 
-    # 3. Read video details and choose the default skip based on the
-    # actual FPS, while still honoring an explicit override from the caller.
+    # 3. Read video details and choose the default skip based on the actual FPS
     duration, auto_frame_skip = _get_video_info(str(video_path))
     effective_frame_skip = (
         frame_skip if frame_skip is not None else auto_frame_skip
@@ -371,7 +378,7 @@ async def process_ppe_video(
     # 6. Run Phase 7 monitor
     config = MonitorConfig(
         frame_skip=effective_frame_skip,
-        temporal_confirmations=5,  # Requires 5 consecutive stable frames before logging state changes
+        temporal_confirmations=5,
     )
 
     monitor = PPEMonitor(
@@ -423,3 +430,34 @@ async def process_ppe_video(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"PPE video processing failed: {exc}",
         )
+
+
+# ---------------------------------------------------------
+# QUERY APIs (Admin Side)
+# ---------------------------------------------------------
+
+@router.get(
+    "/results",
+    response_model=List[PPEComplianceLogResponse],  # Added contract
+    status_code=status.HTTP_200_OK
+)
+def get_ppe_results(
+    query_date: Optional[date] = Query(None, alias="date"),
+    worker_id: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    """
+    GET /api/v1/ppe/results
+    Fetches PPE compliance logs filtered by worker_id and/or calendar date.
+    """
+    query = db.query(PPEComplianceLog)
+
+    # FIXED: Date filtering by joining VideoSource (Matches Phase 8 Logic)
+    if query_date:
+        query = query.join(VideoSource, PPEComplianceLog.video_id == VideoSource.video_id)
+        query = query.filter(cast(VideoSource.uploaded_at, Date) == query_date)
+
+    if worker_id:
+        query = query.filter(PPEComplianceLog.worker_id == worker_id)
+
+    return query.all()

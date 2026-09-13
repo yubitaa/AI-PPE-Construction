@@ -4,7 +4,7 @@ from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.api import attendance, ppe, workers
+from app.api import attendance, ppe, reports, workers
 from app.db.dependencies import get_db
 from app.services.face_recognition import FaceRecognitionService
 
@@ -25,9 +25,11 @@ app = FastAPI(
 )
 
 
-app.include_router(workers.router)
-app.include_router(attendance.router)
-app.include_router(ppe.router)
+# Registering routers under the official /api/v1 contract
+app.include_router(workers.router, prefix="/api/v1/workers", tags=["Workers"])
+app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["Attendance"])
+app.include_router(ppe.router, prefix="/api/v1/ppe", tags=["PPE Compliance"])
+app.include_router(reports.router, prefix="/api/v1", tags=["Analytics & Reports"])
 
 
 @app.get("/")
