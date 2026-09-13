@@ -63,7 +63,7 @@ class MonitorConfig:
     frame_skip: int = 15 # video frames 30 fps // 0.5 seconds
     confidence_threshold: float = 0.50
     helmet_confidence: float = 0.50
-    vest_confidence: float = 0.83
+    vest_confidence: float = 0.80
     temporal_confirmations: int = 2
     max_missing_frames: int = 4
 

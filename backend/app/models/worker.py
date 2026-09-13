@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import String
+from sqlalchemy import String, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -43,9 +43,17 @@ class Worker(Base):
         nullable=True,
     )
 
+    is_active: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+        server_default="true",
+    )
+
     face_embeddings = relationship(
         "FaceEmbedding",
         back_populates="worker",
+        cascade="all, delete-orphan", 
     )
 
     attendance_records = relationship(
