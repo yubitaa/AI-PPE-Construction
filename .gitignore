@@ -100,3 +100,27 @@ dataset/*.png
 dataset/*.jpeg
 
 dataset.zip
+
+frontend.zip
+
+# Frontend build output
+frontend/dist/
+
+# Node modules
+frontend/node_modules/
+
+# Lock files
+frontend/package-lock.json
+
+# Cache directories
+.vite/
+
+# Environment variables (keep `.env.example`)
+.env
+.env.*
+
+frontend/node_modules/
+frontend/dist/
+backend/uploads/
+*.zip
+backend/app/db/TRUNCATE TABLE ppe_compliance_logs RESTA.sql
