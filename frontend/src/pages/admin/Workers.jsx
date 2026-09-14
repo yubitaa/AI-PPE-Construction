@@ -52,7 +52,7 @@ function normalizeWorker(worker) {
 
     status:
       worker?.status ??
-      null,
+      (worker?.is_active === false ? "Inactive" : "Active"),
 
     compliance:
       worker?.ppe_compliance ??
@@ -133,6 +133,45 @@ function CreateWorkerModal({
 
   const [localError, setLocalError] =
     useState("");
+
+  const handleFaceImagesChange = (event) => {
+    const selectedFiles = Array.from(
+      event.target.files || []
+    );
+
+    setFaceImages((currentFiles) => {
+      const files = [...currentFiles, ...selectedFiles];
+      const uniqueFiles = files.filter(
+        (file, index, allFiles) =>
+          allFiles.findIndex(
+            (candidate) =>
+              candidate.name === file.name &&
+              candidate.size === file.size &&
+              candidate.lastModified === file.lastModified
+          ) === index
+      );
+
+      if (uniqueFiles.length > 5) {
+        setLocalError(
+          "You can select a maximum of 5 face images."
+        );
+      } else {
+        setLocalError("");
+      }
+
+      return uniqueFiles.slice(0, 5);
+    });
+
+    // Allow selecting the same file again after removing it.
+    event.target.value = "";
+  };
+
+  const removeFaceImage = (fileToRemove) => {
+    setFaceImages((currentFiles) =>
+      currentFiles.filter((file) => file !== fileToRemove)
+    );
+    setLocalError("");
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -283,13 +322,7 @@ function CreateWorkerModal({
               accept="image/*"
               multiple
               className="hidden"
-              onChange={(e) =>
-                setFaceImages(
-                  Array.from(
-                    e.target.files || []
-                  )
-                )
-              }
+              onChange={handleFaceImagesChange}
             />
 
             <Upload className="h-7 w-7 text-blue-500 mb-2" />
@@ -299,25 +332,44 @@ function CreateWorkerModal({
             </p>
 
             <p className="text-xs text-gray-400 mt-1">
-              Multiple images are supported
+              Select 3 to 5 images
             </p>
           </label>
 
           {faceImages.length > 0 && (
-            <div className="mt-3 space-y-1">
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
               {faceImages.map(
                 (file, index) => (
                   <div
                     key={`${file.name}-${index}`}
-                    className="text-xs text-gray-500 flex items-center gap-2"
+                    className="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
                   >
-                    <Camera className="h-3.5 w-3.5" />
-                    {file.name}
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={file.name}
+                      className="h-24 w-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeFaceImage(file)}
+                      className="absolute top-1 right-1 rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
+                      aria-label={`Remove ${file.name}`}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                    <p className="truncate px-2 py-1 text-xs text-gray-500">
+                      {file.name}
+                    </p>
                   </div>
                 )
               )}
             </div>
           )}
+
+          <p className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+            <Camera className="h-3.5 w-3.5" />
+            {faceImages.length} of 5 images selected
+          </p>
         </div>
 
         <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">

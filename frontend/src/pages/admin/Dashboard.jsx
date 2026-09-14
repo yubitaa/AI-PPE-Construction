@@ -41,6 +41,11 @@ function normalizeAnalytics(data) {
     data?.ppeSummary ??
     {};
 
+  const breakdown =
+    ppe.violations_breakdown ??
+    ppe.violationsBreakdown ??
+    {};
+
   return {
     totalPresent:
       attendance.total_present ??
@@ -65,24 +70,36 @@ function normalizeAnalytics(data) {
       0,
 
     fullPPE:
+      breakdown.full_ppe ??
+      breakdown.fullPpe ??
+      breakdown.FULL_PPE ??
       ppe.full_ppe ??
       ppe.fullPpe ??
       ppe.FULL_PPE ??
       0,
 
     helmetMissing:
+      breakdown.helmet_missing ??
+      breakdown.helmetMissing ??
+      breakdown.HELMET_MISSING ??
       ppe.helmet_missing ??
       ppe.helmetMissing ??
       ppe.HELMET_MISSING ??
       0,
 
     vestMissing:
+      breakdown.vest_missing ??
+      breakdown.vestMissing ??
+      breakdown.VEST_MISSING ??
       ppe.vest_missing ??
       ppe.vestMissing ??
       ppe.VEST_MISSING ??
       0,
 
     noPPE:
+      breakdown.no_ppe ??
+      breakdown.noPpe ??
+      breakdown.NO_PPE ??
       ppe.no_ppe ??
       ppe.noPpe ??
       ppe.NO_PPE ??
@@ -291,7 +308,7 @@ export default function Dashboard() {
         <StatCard
           title="PPE Compliance"
           value={
-            normalized.complianceRate
+            Number(normalized.complianceRate).toFixed(2)
           }
           suffix="%"
           icon={

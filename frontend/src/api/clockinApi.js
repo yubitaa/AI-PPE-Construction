@@ -28,10 +28,10 @@ export async function uploadClockInVideo(
   }
 
   const formData = new FormData();
-  formData.append("video", videoFile);
+  formData.append("video_file", videoFile);
 
   const response = await apiClient.post(
-    "/clock-in/video",
+    "/attendance/upload",
     formData,
     {
       headers: {
@@ -90,7 +90,7 @@ export async function recognizeCameraFrame(frameBlob) {
   );
 
   const response = await apiClient.post(
-    "/clock-in/camera/frame",
+    "/attendance/camera-clockin",
     formData,
     {
       headers: {

@@ -54,11 +54,12 @@ async def process_attendance_frame(
         )
     except HTTPException as exc:
         exc_str = str(exc.detail).lower()
-        if "multiple" in exc_str or "many" in exc_str or exc.status_code == 400:
+        if "multiple" in exc_str or "many" in exc_str:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="many faces are detected",
             )
+
         return None
 
     # Check for dictionary response indicating multiple faces

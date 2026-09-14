@@ -271,6 +271,10 @@ function normalizeClockInResult(response) {
             response?.clock_in_time ??
             response?.clocked_in_at ??
             null,
+        nextAllowedClockIn:
+            response?.next_allowed_clock_in ??
+            response?.nextAllowedClockIn ??
+            null,
         message:
             response?.message ??
             response?.detail ??
@@ -283,7 +287,7 @@ function getResultType(result) {
         return null;
     }
 
-    if (result.status === "CLOCKED_IN") {
+    if (["CLOCKED_IN", "ALREADY_CLOCKED_IN"].includes(result.status)) {
         return "success";
     }
 
@@ -297,6 +301,17 @@ function getResultType(result) {
 function SuccessOverlay({ result, onReset }) {
     const isAlreadyClockedIn =
         result.status === "ALREADY_CLOCKED_IN";
+
+    const formatDateTime = (value) => {
+        if (!value) {
+            return null;
+        }
+
+        const date = new Date(value);
+        return Number.isNaN(date.getTime())
+            ? value
+            : date.toLocaleString();
+    };
 
     return (
         <div
@@ -322,8 +337,14 @@ function SuccessOverlay({ result, onReset }) {
             {result.timestamp && (
                 <p className="text-white/70 text-sm mb-6">
                     {isAlreadyClockedIn
-                        ? `Recorded at ${result.timestamp}`
-                        : `Clocked in at ${result.timestamp}`}
+                        ? `Recorded at ${formatDateTime(result.timestamp)}`
+                        : `Clocked in at ${formatDateTime(result.timestamp)}`}
+                </p>
+            )}
+
+            {isAlreadyClockedIn && result.nextAllowedClockIn && (
+                <p className="text-white/70 text-sm mb-6">
+                    You can clock in again at {formatDateTime(result.nextAllowedClockIn)}.
                 </p>
             )}
 
@@ -522,11 +543,13 @@ function UploadVideoSection({
                 <>
                     {/* Video preview */}
                     <div className="relative bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-800">
-                        <video
-                            src={videoUrl}
-                            controls
-                            className="w-full aspect-[3/4] object-contain"
-                        />
+                        {videoUrl && (
+                            <video
+                                src={videoUrl}
+                                controls
+                                className="w-full aspect-[3/4] object-contain"
+                            />
+                        )}
 
                         {/* File badge */}
                         <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/60 rounded-full px-2.5 py-1 backdrop-blur-md max-w-[75%]">
@@ -662,13 +685,7 @@ export default function ClockIn() {
              * Stop the camera once the backend has returned
              * an actual final attendance state.
              */
-            if (
-                [
-                    "CLOCKED_IN",
-                    "ALREADY_CLOCKED_IN",
-                    "UNKNOWN",
-                ].includes(normalized.status)
-            ) {
+            if (["CLOCKED_IN", "ALREADY_CLOCKED_IN"].includes(normalized.status)) {
                 stopCamera();
             }
         } catch (error) {
@@ -691,10 +708,8 @@ export default function ClockIn() {
 
     const handleCameraReset = () => {
         setResult(null);
-
-        if (!isActive) {
-            startCamera();
-        }
+        stopCamera();
+        startCamera();
     };
 
     // ---------------------------------------------------------------------------

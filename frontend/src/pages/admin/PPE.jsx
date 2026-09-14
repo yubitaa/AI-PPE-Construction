@@ -111,7 +111,7 @@ function formatVideoTimestamp(value) {
   )}`;
 }
 
-function normalizePPERecord(record) {
+function normalizePPERecord(record, workerName) {
   const status = String(
     record?.compliance_status ??
     record?.complianceStatus ??
@@ -124,32 +124,27 @@ function normalizePPERecord(record) {
 
     id:
       record?.log_id ??
-      record?.id ??
       `${record?.worker_id}-${record?.start_timestamp}`,
 
     workerId:
       record?.worker_id ??
-      record?.workerId ??
       null,
 
     workerName:
-      record?.worker_name ??
-      record?.workerName ??
+      record?.name ??
+      workerName ??
       "Unknown Worker",
 
     videoId:
       record?.video_id ??
-      record?.videoId ??
       null,
 
     startTimestamp:
       record?.start_timestamp ??
-      record?.startTimestamp ??
       null,
 
     endTimestamp:
       record?.end_timestamp ??
-      record?.endTimestamp ??
       null,
 
     helmetDetected:
@@ -277,9 +272,22 @@ export default function PPE() {
     useMemo(
       () =>
         records.map(
-          normalizePPERecord
+          (record) => {
+            const workerId = record?.worker_id;
+            const worker = workers.find(
+              (item) =>
+                (item.worker_id ?? item.id) ===
+                workerId
+            );
+
+            return normalizePPERecord(
+              record,
+              worker?.name ??
+                worker?.worker_name
+            );
+          }
         ),
-      [records]
+      [records, workers]
     );
 
   /*

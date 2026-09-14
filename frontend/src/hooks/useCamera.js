@@ -79,22 +79,44 @@ export function useCamera({ facingMode = "user" } = {}) {
     }, []);
 
     // ── Capture Frame (returns a Blob) ────────────────────────────────────────
-    const captureFrame = useCallback(() => {
+    const captureFrame = useCallback(async () => {
+        const video = videoRef.current;
+
+        if (!video || status !== "active") {
+            throw new Error("Camera is not active.");
+        }
+
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+            await new Promise((resolve, reject) => {
+                const timeout = window.setTimeout(() => {
+                    video.removeEventListener("loadeddata", handleLoadedData);
+                    reject(new Error("Camera frame is not ready yet."));
+                }, 3000);
+
+                const handleLoadedData = () => {
+                    window.clearTimeout(timeout);
+                    video.removeEventListener("loadeddata", handleLoadedData);
+                    resolve();
+                };
+
+                video.addEventListener("loadeddata", handleLoadedData, {
+                    once: true,
+                });
+            });
+        }
+
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+            throw new Error("Camera frame is not ready yet.");
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
         return new Promise((resolve, reject) => {
-            const video = videoRef.current;
-
-            if (!video || status !== "active") {
-                reject(new Error("Camera is not active."));
-                return;
-            }
-
-            const canvas = document.createElement("canvas");
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
             canvas.toBlob(
                 (blob) => {
                     if (blob) {

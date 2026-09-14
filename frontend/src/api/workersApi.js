@@ -5,12 +5,12 @@ import apiClient from "./client";
 /**
  * Get all workers.
  *
- * GET /admin/workers
+ * GET /workers
  *
  * @returns {Promise<Array>}
  */
 export async function getWorkers() {
-    const response = await apiClient.get("/admin/workers");
+    const response = await apiClient.get("/workers");
 
     return response.data;
 }
@@ -18,7 +18,7 @@ export async function getWorkers() {
 /**
  * Get one worker.
  *
- * GET /admin/workers/{worker_id}
+ * GET /workers/{worker_id}
  *
  * @param {string} workerId
  * @returns {Promise<Object>}
@@ -29,7 +29,7 @@ export async function getWorker(workerId) {
     }
 
     const response = await apiClient.get(
-        `/admin/workers/${workerId}`
+        `/workers/${workerId}`
     );
 
     return response.data;
@@ -38,7 +38,7 @@ export async function getWorker(workerId) {
 /**
  * Create a worker.
  *
- * POST /admin/workers
+ * POST /workers
  *
  * multipart/form-data:
  * - name
@@ -103,7 +103,7 @@ export async function createWorker({
     });
 
     const response = await apiClient.post(
-        "/admin/workers",
+        "/workers",
         formData,
         {
             headers: {
@@ -118,7 +118,7 @@ export async function createWorker({
 /**
  * Update a worker.
  *
- * PUT /admin/workers/{worker_id}
+ * PUT /workers/{worker_id}
  *
  * JSON:
  * {
@@ -146,7 +146,7 @@ export async function updateWorker(
     }
 
     const response = await apiClient.put(
-        `/admin/workers/${workerId}`,
+        `/workers/${workerId}`,
         workerData
     );
 
@@ -156,7 +156,7 @@ export async function updateWorker(
 /**
  * Delete a worker.
  *
- * DELETE /admin/workers/{worker_id}
+ * DELETE /workers/{worker_id}
  *
  * @param {string} workerId
  * @returns {Promise<Object>}
@@ -167,7 +167,7 @@ export async function deleteWorker(workerId) {
     }
 
     const response = await apiClient.delete(
-        `/admin/workers/${workerId}`
+        `/workers/${workerId}`
     );
 
     return response.data;
@@ -176,7 +176,7 @@ export async function deleteWorker(workerId) {
 /**
  * Identify a worker from a face image.
  *
- * POST /admin/workers/identify
+ * POST /workers/identify
  *
  * multipart/form-data:
  * face_image: File
@@ -196,7 +196,7 @@ export async function identifyWorker(faceImage) {
     formData.append("face_image", faceImage);
 
     const response = await apiClient.post(
-        "/admin/workers/identify",
+        "/workers/identify",
         formData,
         {
             headers: {

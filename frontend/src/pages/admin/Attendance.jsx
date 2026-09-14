@@ -110,6 +110,11 @@ function normalizeAttendanceRecord(record) {
       record?.timestamp ??
       null,
 
+    clockOut:
+      record?.clock_out ??
+      record?.clockOut ??
+      null,
+
     confidenceScore:
       record?.confidence_score ??
       record?.confidenceScore ??
@@ -473,10 +478,8 @@ export default function Attendance() {
                         )}
                       </td>
 
-                      {/* The Phase 10 AttendanceRecordResponse
-                          does not define a clock-out field. */}
-                      <td className="px-6 py-4 text-gray-400 font-mono">
-                        —
+                      <td className="px-6 py-4 text-gray-500 font-mono">
+                        {formatTimestamp(log.clockOut)}
                       </td>
 
                       <td className="px-6 py-4">

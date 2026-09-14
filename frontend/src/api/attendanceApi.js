@@ -5,7 +5,7 @@ import apiClient from "./client";
 /**
  * Get attendance records.
  *
- * GET /admin/attendance
+ * GET /attendance
  *
  * Optional query parameters:
  * - date=YYYY-MM-DD
@@ -31,7 +31,7 @@ export async function getAttendance({
   }
 
   const response = await apiClient.get(
-    "/admin/attendance",
+    "/attendance",
     { params }
   );
 

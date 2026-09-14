@@ -1,6 +1,6 @@
 import os
 import tempfile
-from datetime import date
+from datetime import date, timedelta
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status, Query
@@ -11,7 +11,10 @@ from app.dependencies import get_face_service
 from app.models.attendance import AttendanceRecord
 from app.schemas.attendance import AttendanceRecordResponse
 from app.schemas.responses import CameraClockInResponse  # Added strict response contract
-from app.services.attendance import process_attendance_frame
+from app.services.attendance import (
+    CLOCK_IN_COOLDOWN_MINUTES,
+    process_attendance_frame,
+)
 from app.services.face_recognition import FaceRecognitionService
 from app.services.worker import change_image_to_ndarray
 from app.vision.frame_extractor import extract_frames
@@ -100,7 +103,17 @@ async def camera_clockin(
         if not record:
             return {"status": "UNKNOWN", "worker_id": None}
 
-        return {"status": "CLOCKED_IN", "worker_id": str(record.worker_id)}
+        next_allowed_clock_in = None
+        if record.timestamp:
+            next_allowed_clock_in = record.timestamp + timedelta(minutes=30)
+
+        return {
+            "status": record.status,
+            "worker_id": str(record.worker_id),
+            "worker_name": record.worker_name,
+            "timestamp": record.timestamp,
+            "next_allowed_clock_in": next_allowed_clock_in,
+        }
 
     except HTTPException as e:
         # FIXED: Precise string matching to prevent false positives
@@ -135,4 +148,24 @@ def get_attendance_results(
     if worker_id:
         query = query.filter(AttendanceRecord.worker_id == worker_id)
 
-    return query.all()
+
+    records = query.all()
+
+    return [
+        {
+            "worker_id": record.worker_id,
+            "worker_name": record.worker.name if record.worker else None,
+            "status": (
+                "CLOCKED_IN"
+                if record.status == "PRESENT"
+                else record.status
+            ),
+            "timestamp": record.clock_in,
+            "clock_out": record.clock_in + timedelta(
+                minutes=CLOCK_IN_COOLDOWN_MINUTES
+            ),
+            # Historical attendance rows do not persist recognition confidence.
+            "confidence_score": None,
+        }
+        for record in records
+    ]

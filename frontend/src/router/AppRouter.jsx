@@ -24,8 +24,8 @@ export default function AppRouter() {
                 {/* =========================
             ADMIN ROUTES
            ========================= */}
-                <Route path="/admin" element={<AdminLayout />}>
-                    <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="/" element={<AdminLayout />}>
+                    <Route index element={<Navigate to="/dashboard" replace />} />
 
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="workers" element={<Workers />} />
@@ -45,19 +45,11 @@ export default function AppRouter() {
                 </Route>
 
                 {/* =========================
-            DEFAULT ROUTE
-           ========================= */}
-                <Route
-                    path="/"
-                    element={<Navigate to="/user/clock-in" replace />}
-                />
-
-                {/* =========================
             404
            ========================= */}
                 <Route
                     path="*"
-                    element={<Navigate to="/user/clock-in" replace />}
+                    element={<Navigate to="/dashboard" replace />}
                 />
             </Routes>
         </BrowserRouter>

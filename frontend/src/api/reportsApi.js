@@ -5,7 +5,7 @@ import apiClient from "./client";
 /**
  * Generate an AI daily safety report.
  *
- * POST /admin/reports/generate
+ * POST /reports/generate
  *
  * Body:
  * {
@@ -15,22 +15,17 @@ import apiClient from "./client";
  * @param {string} targetDate
  * @returns {Promise<Object>}
  */
-export async function generateDailyReport(
-    targetDate
-) {
+export async function generateDailyReport(targetDate) {
     if (!targetDate) {
-        throw new Error(
-            "targetDate is required."
-        );
+        throw new Error("targetDate is required.");
     }
 
-    const response =
-        await apiClient.post(
-            "/admin/reports/generate",
-            {
-                target_date: targetDate,
-            }
-        );
+    const response = await apiClient.post(
+        "/reports/generate",
+        {
+            target_date: targetDate,
+        }
+    );
 
     return response.data;
 }
@@ -38,24 +33,39 @@ export async function generateDailyReport(
 /**
  * Get an existing daily safety report.
  *
- * GET /admin/reports/{target_date}
+ * GET /reports/{target_date}
  *
  * @param {string} targetDate
  * @returns {Promise<Object>}
  */
-export async function getDailyReport(
-    targetDate
-) {
+export async function getDailyReport(targetDate) {
     if (!targetDate) {
-        throw new Error(
-            "targetDate is required."
-        );
+        throw new Error("targetDate is required.");
     }
 
-    const response =
-        await apiClient.get(
-            `/admin/reports/${targetDate}`
-        );
+    const response = await apiClient.get(
+        `/reports/${targetDate}`
+    );
+
+    return response.data;
+}
+
+/**
+ * Get daily analytics metrics (Phase 8).
+ *
+ * GET /analytics/{target_date}
+ *
+ * @param {string} targetDate
+ * @returns {Promise<Object>}
+ */
+export async function getDailyAnalytics(targetDate) {
+    if (!targetDate) {
+        throw new Error("targetDate is required.");
+    }
+
+    const response = await apiClient.get(
+        `/analytics/${targetDate}`
+    );
 
     return response.data;
 }

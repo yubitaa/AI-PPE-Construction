@@ -124,3 +124,5 @@ frontend/dist/
 backend/uploads/
 *.zip
 backend/app/db/TRUNCATE TABLE ppe_compliance_logs RESTA.sql
+
+docker-compose.yml

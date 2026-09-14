@@ -5,7 +5,7 @@ import apiClient from "./client";
 /**
  * Upload a PPE monitoring video.
  *
- * POST /worker/ppe/upload
+ * POST /ppe/upload
  *
  * multipart/form-data:
  * - video_file: File
@@ -41,7 +41,7 @@ export async function uploadPPEVideo(
     }
 
     const response = await apiClient.post(
-        "/worker/ppe/upload",
+        "/ppe/upload",
         formData,
         {
             headers: {
@@ -72,7 +72,7 @@ export async function uploadPPEVideo(
 /**
  * Get PPE compliance results.
  *
- * GET /admin/ppe/results
+ * GET /ppe/results
  *
  * Optional query parameters:
  * - date=YYYY-MM-DD
@@ -98,7 +98,7 @@ export async function getPPEResults({
     }
 
     const response = await apiClient.get(
-        "/admin/ppe/results",
+        "/ppe/results",
         {
             params,
         }

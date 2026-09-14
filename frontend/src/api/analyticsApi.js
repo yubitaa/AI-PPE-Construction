@@ -5,7 +5,7 @@ import apiClient from "./client";
 /**
  * Get daily analytics.
  *
- * GET /admin/analytics/{target_date}
+ * GET /analytics/{target_date}
  *
  * @param {string} targetDate
  * @returns {Promise<Object>}
@@ -16,7 +16,7 @@ export async function getDailyAnalytics(targetDate) {
   }
 
   const response = await apiClient.get(
-    `/admin/analytics/${targetDate}`
+    `/analytics/${targetDate}`
   );
 
   return response.data;

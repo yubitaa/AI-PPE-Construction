@@ -3,11 +3,11 @@ import { LayoutDashboard, Users, Clock, ShieldCheck, FileText, Menu, Bell, Searc
 import { useState } from 'react';
 
 const navItems = [
-  { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/admin/workers', icon: Users, label: 'Workers' },
-  { to: '/admin/attendance', icon: Clock, label: 'Attendance' },
-  { to: '/admin/ppe', icon: ShieldCheck, label: 'PPE Monitoring' },
-  { to: '/admin/reports', icon: FileText, label: 'Reports' },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/workers', icon: Users, label: 'Workers' },
+  { to: '/attendance', icon: Clock, label: 'Attendance' },
+  { to: '/ppe', icon: ShieldCheck, label: 'PPE Monitoring' },
+  { to: '/reports', icon: FileText, label: 'Reports' },
 ];
 
 export default function AdminLayout() {

@@ -361,93 +361,9 @@ const PPE_ITEMS = [
  * NO_PPE
  */
 function normalizeBackendResult(data) {
-    const status =
-        data?.compliance_status ||
-        data?.status ||
-        data?.overall_status ||
-        null;
-
-    const normalizedStatus = String(status || "").toUpperCase();
-
-    let items = {
-        hardhat: false,
-        vest: false,
-    };
-
-    switch (normalizedStatus) {
-        case "FULL_PPE":
-            items = {
-                hardhat: true,
-                vest: true,
-            };
-            break;
-
-        case "HELMET_MISSING":
-            items = {
-                hardhat: false,
-                vest: true,
-            };
-            break;
-
-        case "VEST_MISSING":
-            items = {
-                hardhat: true,
-                vest: false,
-            };
-            break;
-
-        case "NO_PPE":
-            items = {
-                hardhat: false,
-                vest: false,
-            };
-            break;
-
-        default:
-            /*
-             * Prefer explicit booleans when the backend response
-             * provides them.
-             */
-            items = {
-                hardhat: Boolean(
-                    data?.helmet_detected ??
-                    data?.helmetDetected ??
-                    data?.items?.hardhat
-                ),
-                vest: Boolean(
-                    data?.vest_detected ??
-                    data?.vestDetected ??
-                    data?.items?.vest
-                ),
-            };
-            break;
-    }
-
-    const complianceScore =
-        typeof data?.compliance_score === "number"
-            ? data.compliance_score
-            : typeof data?.complianceScore === "number"
-                ? data.complianceScore
-                : null;
-
-    let overall = "unknown";
-
-    if (normalizedStatus === "FULL_PPE") {
-        overall = "compliant";
-    } else if (
-        normalizedStatus === "HELMET_MISSING" ||
-        normalizedStatus === "VEST_MISSING" ||
-        normalizedStatus === "NO_PPE"
-    ) {
-        overall = "violation";
-    }
-
     return {
         ...data,
-        status: normalizedStatus || data?.status || null,
-        overall,
-        complianceScore,
-        items,
+        status: String(data?.status || "").toUpperCase(),
     };
 }
 
@@ -502,12 +418,7 @@ function UploadZone({
 
     const handleInputChange = (event) => {
         const file = event.target.files?.[0];
-
-        if (file) {
-            onFileSelected(file);
-        }
-
-        // Allow selecting the same file again after removal.
+        if (file) onFileSelected(file);
         event.target.value = "";
     };
 
@@ -529,21 +440,14 @@ function UploadZone({
                 className="hidden"
                 onChange={handleInputChange}
             />
-
             <div className="flex flex-col items-center gap-3">
                 <div className="p-4 bg-blue-100 rounded-full">
                     <UploadCloud className="h-8 w-8 text-blue-500" />
                 </div>
-
                 <div>
-                    <p className="font-semibold text-slate-700">
-                        Tap to upload your video
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">
-                        or drag and drop here
-                    </p>
+                    <p className="font-semibold text-slate-700">Tap to upload your video</p>
+                    <p className="text-xs text-slate-400 mt-1">or drag and drop here</p>
                 </div>
-
                 <p className="text-xs text-slate-400 bg-white border border-slate-200 px-3 py-1 rounded-full">
                     MP4, MOV, AVI, WEBM
                 </p>
@@ -560,37 +464,25 @@ function VideoPreview({ file, onRemove }) {
             setVideoUrl("");
             return undefined;
         }
-
         const url = URL.createObjectURL(file);
         setVideoUrl(url);
-
-        return () => {
-            URL.revokeObjectURL(url);
-        };
+        return () => URL.revokeObjectURL(url);
     }, [file]);
 
     return (
         <div className="relative bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-800">
-            <video
-                src={videoUrl}
-                controls
-                className="w-full max-h-56 object-contain"
-            />
-
+            {videoUrl && (
+                <video
+                    src={videoUrl}
+                    controls
+                    className="w-full max-h-56 object-contain"
+                />
+            )}
             <div className="absolute top-2 left-2 flex items-center gap-2 bg-black/60 rounded-full px-2.5 py-1 backdrop-blur-sm">
                 <FileVideo className="h-3.5 w-3.5 text-white" />
-
-                <span className="text-[11px] text-white font-medium truncate max-w-[140px]">
-                    {file.name}
-                </span>
+                <span className="text-[11px] text-white font-medium truncate max-w-[140px]">{file.name}</span>
             </div>
-
-            <button
-                type="button"
-                onClick={onRemove}
-                className="absolute top-2 right-2 p-1 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors"
-                aria-label="Remove video"
-            >
+            <button type="button" onClick={onRemove} className="absolute top-2 right-2 p-1 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors" aria-label="Remove video">
                 <X className="h-4 w-4" />
             </button>
         </div>
@@ -628,83 +520,28 @@ function ProcessingStatus({ progress }) {
 }
 
 function ResultCard({ result }) {
-    const isCompliant = result.overall === "compliant";
-    const score = result.complianceScore;
-
     return (
-        <div
-            className={`rounded-2xl border p-5 space-y-4 ${isCompliant
-                ? "bg-green-50 border-green-200"
-                : "bg-red-50 border-red-200"
-                }`}
-        >
+        <div className="rounded-2xl border border-green-200 bg-green-50 p-5 space-y-4">
             <div className="flex items-center gap-3">
-                {isCompliant ? (
-                    <CheckCircle2 className="h-8 w-8 text-green-500 flex-shrink-0" />
-                ) : (
-                    <ShieldAlert className="h-8 w-8 text-red-500 flex-shrink-0" />
-                )}
+                <CheckCircle2 className="h-8 w-8 text-green-500 flex-shrink-0" />
 
                 <div>
-                    <h3
-                        className={`font-bold text-lg ${isCompliant ? "text-green-700" : "text-red-700"
-                            }`}
-                    >
-                        {isCompliant
-                            ? "PPE Compliant"
-                            : result.status || "PPE Compliance Result"}
+                    <h3 className="font-bold text-lg text-green-700">
+                        PPE analysis {result.status || "completed"}
                     </h3>
 
                     <p className="text-xs text-slate-500">
-                        {result.message ||
-                            "The backend returned a PPE compliance result."}
+                        The backend finished processing this video.
                     </p>
                 </div>
             </div>
 
-            {typeof score === "number" && (
-                <div className="flex items-center gap-3">
-                    <span className="text-xs text-slate-500 font-medium w-20">
-                        Compliance
-                    </span>
-
-                    <div className="flex-1 bg-slate-200 rounded-full h-2">
-                        <div
-                            className={`h-2 rounded-full transition-all duration-700 ${score >= 90
-                                ? "bg-green-500"
-                                : score >= 70
-                                    ? "bg-yellow-400"
-                                    : "bg-red-500"
-                                }`}
-                            style={{
-                                width: `${Math.min(100, Math.max(0, score))}%`,
-                            }}
-                        />
-                    </div>
-
-                    <span
-                        className={`text-sm font-bold w-10 text-right ${score >= 90
-                            ? "text-green-600"
-                            : score >= 70
-                                ? "text-yellow-600"
-                                : "text-red-600"
-                            }`}
-                    >
-                        {score}%
-                    </span>
-                </div>
-            )}
-
-            <ul className="space-y-2">
-                {PPE_ITEMS.map(({ key, label, Icon }) => (
-                    <PPEItemRow
-                        key={key}
-                        icon={Icon}
-                        label={label}
-                        checked={result.items[key]}
-                    />
-                ))}
-            </ul>
+            <dl className="grid grid-cols-2 gap-3 text-sm">
+                <div><dt className="text-slate-500">Processed frames</dt><dd className="font-semibold text-slate-800">{result.processed_frames ?? "-"}</dd></div>
+                <div><dt className="text-slate-500">Recognized workers</dt><dd className="font-semibold text-slate-800">{result.recognized_workers ?? "-"}</dd></div>
+                <div><dt className="text-slate-500">Compliance events</dt><dd className="font-semibold text-slate-800">{result.compliance_events ?? "-"}</dd></div>
+                <div><dt className="text-slate-500">Unknown attempts</dt><dd className="font-semibold text-slate-800">{result.unknown_attempts ?? "-"}</dd></div>
+            </dl>
         </div>
     );
 }
