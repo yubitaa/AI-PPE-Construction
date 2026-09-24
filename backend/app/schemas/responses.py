@@ -45,6 +45,9 @@ class DailyReportResponse(BaseModel):
 class CameraClockInResponse(BaseModel):
     status: str
     worker_id: Optional[str] = None
+    worker_name: Optional[str] = None
+    timestamp: Optional[datetime] = None
+    next_allowed_clock_in: Optional[datetime] = None
 
 
 # 5. PPE Processing Response Contract

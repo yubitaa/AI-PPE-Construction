@@ -16,7 +16,8 @@ class AttendanceRecordResponse(BaseModel):
     worker_name: Optional[str] = Field(None, description="Full name of the worker")
     status: str = Field(..., description="Clock-in state: 'CLOCKED_IN' or 'ALREADY_CLOCKED_IN'")
     timestamp: datetime = Field(..., description="Exact date and time when the clock-in was recorded")
-    confidence_score: float = Field(..., description="Face resemblance match accuracy percentage (0-100%)")
+    clock_out: Optional[datetime] = Field(None, description="Calculated clock-out time")
+    confidence_score: Optional[float] = Field(None, description="Face resemblance match accuracy percentage (0-100%), when available")
 
 
 class VideoAttendanceResult(BaseModel):

@@ -53,7 +53,7 @@ async def register_worker(
     worker = await register_worker_service(
         db=db,
         name=name,
-        employee_id=employee_id,
+        employee_id=employee_id,    
         role=role,
         department=department,
         tag_id=tag_id,
